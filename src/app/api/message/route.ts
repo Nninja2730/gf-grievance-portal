@@ -2,13 +2,15 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { Session } from 'next-auth';
-import authOptions from '@/lib/auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: Request) {
     const data = await req.formData();
     const content = data.get('content') as string;
     const emoji = data.get('emoji') as string;
     const expectedResponse = data.get('expectedResponse') as string || null;
+    const priority = data.get('priority') as string || 'medium';
+    const category = data.get('category') as string || 'other';
     const slug = data.get('slug') as string;
 
     if (!content || !emoji || !slug) {
@@ -26,6 +28,8 @@ export async function POST(req: Request) {
             content,
             emoji,
             expectedResponse: expectedResponse || null,
+            priority,
+            category,
             personId: person.id
         }
     });
@@ -68,9 +72,18 @@ export async function PATCH(req: Request) {
         return new NextResponse('Forbidden', { status: 403 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const apologyContent = body.apologyContent as string | undefined;
+    const apologyEmoji = body.apologyEmoji as string | undefined;
+
     const updatedMessage = await prisma.message.update({
         where: { id: messageId },
-        data: { done: true },
+        data: { 
+            done: true,
+            resolvedAt: new Date(),
+            apologyContent: apologyContent || null,
+            apologyEmoji: apologyEmoji || null,
+        },
     });
 
     return NextResponse.json({ success: true, message: updatedMessage });

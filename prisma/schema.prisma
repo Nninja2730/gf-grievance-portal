@@ -21,18 +21,23 @@ model Person {
   name      String
   slug      String    @unique
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   messages  Message[]
 }
 
 model Message {
-  id               String   @id @default(cuid())
-  content          String
-  emoji            String
-  person           Person   @relation(fields: [personId], references: [id])
-  personId         String
-  createdAt        DateTime @default(now())
-  expectedResponse String?
-  done             Boolean  @default(false)
+  id                String   @id @default(cuid())
+  content           String
+  emoji             String
+  person            Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  personId          String
+  createdAt         DateTime @default(now())
+  expectedResponse  String?
+  priority          String   @default("medium")  // low, medium, high, urgent
+  category          String   @default("other")   // other, communication, respect, time, effort
+  done              Boolean  @default(false)
+  resolvedAt        DateTime?
+  apologyContent    String?
+  apologyEmoji      String?
 }
